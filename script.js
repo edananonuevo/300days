@@ -1,3 +1,48 @@
+const canvas = document.getElementById('snowCanvas');
+const ctx = canvas.getContext('2d');
+
+let width = window.innerWidth;
+let height = window.innerHeight;
+canvas.width = width;
+canvas.height = height;
+
+let snowflakes = [];
+
+function createSnowflakes() {
+  const x = Math.random() * width;
+  const y = Math.random() * height;
+  const size = Math.random() * 3 + 2;
+  const speed = Math.random() * 1 + 0.5;
+  snowflakes.push({ x, y, size, speed });
+}
+
+function drawSnowflakes() {
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  for (let flake of snowflakes) {
+    ctx.moveTo(flake.x, flake.y);
+    ctx.arc(flake.x, flake.y, flake.size, 0, Math.PI * 2);
+  }
+  ctx.fill();
+  moveSnowflakes();
+  requestAnimationFrame(drawSnowflakes);
+}
+
+function moveSnowflakes() {
+  for (let flake of snowflakes) {
+    flake.y += flake.speed;
+    if (flake.y > height) {
+      flake.y = 0;
+      flake.x = Math.random() * width;
+    }
+  }
+}
+
+for (let i = 0; i < 100; i++) createSnowflakes();
+drawSnowflakes();
+
+
 const tearTab = document.getElementById('tearTab');
 const boxClosed = document.getElementById('boxClosed');
 const boxTop = document.getElementById('boxTop');
