@@ -53,6 +53,9 @@ let isTearPlaying = false;
 function playTearSequence() {
   if (!tearTab || isTearPlaying) return;
   isTearPlaying = true;
+  // Hide the indicator immediately when sequence starts
+  const tearIndicator = document.querySelector('.tear-indicator');
+  if (tearIndicator) tearIndicator.style.display = 'none';
   // prevent re-click while animating
   tearTab.style.pointerEvents = 'none';
 
@@ -99,4 +102,44 @@ function playTearSequence() {
 if (tearTab) {
   tearTab.addEventListener('click', playTearSequence);
 }
+
+// Robust positioning: place the `.tear-instruction` to the left/top of the `#tearTab` image
+function positionTearInstruction() {
+  const scene = document.querySelector('.pepero-scene');
+  const tab = document.getElementById('tearTab');
+  const instr = document.querySelector('.tear-indicator');
+  if (!scene || !tab || !instr) return;
+
+  // Make sure the instruction is absolutely positioned inside the scene
+  instr.style.position = 'absolute';
+  instr.style.pointerEvents = 'none';
+  instr.style.zIndex = '999';
+
+  // Get bounding rects and compute scene-local coordinates
+  const sceneRect = scene.getBoundingClientRect();
+  const tabRect = tab.getBoundingClientRect();
+  const instrRect = instr.getBoundingClientRect();
+
+  // Calculate position: left of the tab, vertically centered on the tab
+  const gap = 8; // pixels gap between instruction and tab
+  let left = (tabRect.left - sceneRect.left) - instrRect.width - gap;
+  let top = (tabRect.top - sceneRect.top) + (tabRect.height - instrRect.height) / 2;
+
+  // If left would go off the scene, place it overlapping the tab instead
+  if (left < 4) left = (tabRect.left - sceneRect.left) + tabRect.width * 0.02;
+
+  // Position the indicator centered on the left edge of the tab area (start of tab)
+  // We'll place the indicator at the left edge + 6px inside for clarity
+  const indicatorX = (tabRect.left - sceneRect.left) + 16;
+  const indicatorY = (tabRect.top - sceneRect.top) + tabRect.height / 2;
+  instr.style.left = Math.round(indicatorX) + 'px';
+  instr.style.top = Math.round(indicatorY) + 'px';
+}
+
+window.addEventListener('load', () => {
+  positionTearInstruction();
+});
+window.addEventListener('resize', () => {
+  positionTearInstruction();
+});
 

@@ -1,5 +1,5 @@
 body {
-  background-color: #f9e6d1;
+  background-color: #f8f9fa;
   margin: 0;
   overflow: hidden;
   display: flex;
@@ -47,6 +47,30 @@ body {
   left: 20%;
   top: -50px;
   animation: float 2s infinite ease-in-out;
+}
+
+.tear-indicator {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(33, 133, 255, 0.95); /* strong blue */
+  box-shadow: 0 6px 12px rgba(33,133,255,0.18);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 999;
+  animation: pulse-ind 1s infinite ease-in-out;
+}
+
+@keyframes pulse-ind {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  50% { transform: translate(-50%, -50%) scale(1.35); opacity: 0.7; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+@keyframes pulse {
+  0% { transform: translateY(-50%) scale(1); opacity: 1; }
+  50% { transform: translateY(-50%) scale(1.06); opacity: 0.85; }
+  100% { transform: translateY(-50%) scale(1); opacity: 1; }
 }
 
 .hidden {
