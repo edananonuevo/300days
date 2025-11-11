@@ -145,3 +145,10 @@ body {
     opacity: 0;
   }
 }
+
+/* Slide the bottom half of the box downwards to reveal the letter */
+.box-bottom-slide {
+  transition: transform 700ms cubic-bezier(.2,.9,.2,1), opacity 420ms ease;
+  transform: translateY(140%);
+  opacity: 0;
+}

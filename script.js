@@ -1,35 +1,3 @@
-let sticksEaten = 0;
-const totalSticks = document.querySelectorAll('.stick').length;
-
-function openLid() {
-  const box = document.querySelector('.pepero-box');
-  box.classList.add('open');
-}
-
-function eatStick(stick) {
-  if (stick.classList.contains('eaten')) return;
-  stick.classList.add('eaten');
-  stick.style.height = '0';
-  stick.style.opacity = '0';
-  sticksEaten++;
-
-  if (sticksEaten === totalSticks) {
-    revealPaper();
-  }
-}
-
-function revealPaper() {
-  const paper = document.querySelector('.paper');
-  paper.style.display = 'block';
-  paper.style.animation = 'pop 0.6s ease';
-}
-
-function openLetter() {
-  const letter = document.querySelector('.letter');
-  letter.style.display = 'block';
-  letter.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 800, fill: 'forwards' });
-}
-
 const tearTab = document.getElementById('tearTab');
 const boxClosed = document.getElementById('boxClosed');
 const boxTop = document.getElementById('boxTop');
@@ -201,6 +169,8 @@ function enableStickClicks() {
         // after final variant, hide the stick visually and disable interactions
         // Use visibility:hidden (preserves layout space) so other sticks don't shift
         s.dataset.hidden = 'true';
+  // check if all sticks are now hidden and enable the letter if so
+  checkAllSticksHidden();
         s.classList.remove('in-front');
         s.style.transition = 'opacity 220ms ease, transform 220ms ease';
         s.style.opacity = '0';
@@ -212,7 +182,58 @@ function enableStickClicks() {
       }
     });
   });
+  // If some sticks were already hidden (edge case), enable the letter now
+  checkAllSticksHidden();
 }
 
 window.addEventListener('load', enableStickClicks);
+
+// Check whether all sticks are hidden and enable the letter when they are
+function checkAllSticksHidden() {
+  const sticks = Array.from(document.querySelectorAll('.stick'));
+  if (sticks.length === 0) return false;
+  const allHidden = sticks.every(s => s.dataset.hidden === 'true');
+  if (allHidden) enableLetterClick();
+  return allHidden;
+}
+
+// Enable the letter to be clickable once all sticks are hidden
+function enableLetterClick() {
+  const letter = document.getElementById('letter');
+  const boxBottom = document.getElementById('boxBottom');
+  if (!letter || !boxBottom) return;
+
+  // If already enabled, do nothing
+  if (letter.dataset.enabled === 'true') return;
+  letter.dataset.enabled = 'true';
+  letter.style.pointerEvents = 'auto';
+  letter.style.cursor = 'pointer';
+
+  function onLetterClick(e) {
+    e.stopPropagation();
+    // Prevent double clicks
+    letter.style.pointerEvents = 'none';
+
+    // Slide the box bottom down and then hide it so the letter is unobstructed
+    boxBottom.classList.add('box-bottom-slide');
+
+    // After the transition finishes, hide the element (preserve layout if desired)
+    const cleanup = () => {
+      // final hide: remove from flow so only the letter remains visible
+      boxBottom.classList.remove('box-bottom-slide');
+      boxBottom.classList.add('hidden');
+      boxBottom.removeEventListener('transitionend', cleanup);
+    };
+
+    boxBottom.addEventListener('transitionend', cleanup);
+    // Fallback in case transitionend doesn't fire (force hide after 800ms)
+    setTimeout(() => {
+      if (!boxBottom.classList.contains('hidden')) {
+        boxBottom.classList.add('hidden');
+      }
+    }, 900);
+  }
+
+  letter.addEventListener('click', onLetterClick);
+}
 
