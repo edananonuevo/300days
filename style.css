@@ -1,0 +1,76 @@
+body {
+  background-color: #f9e6d1;
+  margin: 0;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.pepero-scene {
+  /* center the scene in the viewport */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  width: 300px;
+  height: 500px;
+  display: flex; /* stack parts vertically */
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0; /* no vertical gap between parts */
+}
+
+
+/* Let the box parts participate in normal flow so they stack without gaps */
+.box, .box-part, .tear-tab {
+  position: relative;
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0;
+}
+
+/* Other overlay elements keep absolute positioning */
+.instruction, .sticks, .paper {
+  position: absolute;
+  width: 100%;
+  height: auto;
+  top: 0;
+  left: 0;
+}
+
+.instruction {
+  width: 60%;
+  left: 20%;
+  top: -50px;
+  animation: float 2s infinite ease-in-out;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Hide an element visually but keep its layout space so other elements don't shift */
+.preserve-space {
+  visibility: hidden;
+  opacity: 0;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.box-top-open {
+  animation: liftTop 1s forwards;
+}
+
+@keyframes liftTop {
+  to {
+    transform: translateY(-150%) rotate(-5deg);
+    opacity: 0;
+  }
+}
