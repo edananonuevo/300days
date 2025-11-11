@@ -31,7 +31,32 @@ body {
   height: auto;
   display: block;
   margin: 0;
+  z-index: inherit;
 }
+
+/* Sticks sit behind the box parts */
+.sticks {
+  position: absolute;
+  inset: 0; /* fill the scene */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 12px;
+  margin-top: -40px;
+  gap: 12px; /* tighter spacing */
+  z-index: 0; /* behind box parts which will be higher */
+  pointer-events: none;
+}
+
+.stick {
+  width: 14%; /* larger relative size */
+  max-width: 130px; /* allow larger sticks */
+  height: auto;
+  opacity: 0.98;
+  transform-origin: center bottom;
+  margin-left: -18px; /* overlap slightly to bring sticks closer */
+}
+
 
 /* Other overlay elements keep absolute positioning */
 .instruction, .sticks, .paper {
