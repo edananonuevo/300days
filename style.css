@@ -14,7 +14,7 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 1;
+  z-index: 8;
   width: 300px;
   height: 500px;
   display: flex; /* stack parts vertically */
@@ -54,14 +54,29 @@ body {
   opacity: 0.98;
   transform-origin: center bottom;
   margin-left: -18px; /* overlap slightly to bring sticks closer */
-  z-index: 0; /* behind box parts */
+  z-index: 6; /* behind box parts */
 }
 
 /* When a stick is clicked, bring it visually forward */
 .stick.in-front {
   position: relative;
-  z-index: 4; /* above box parts */
+  z-index: 10; /* above box parts */
   transform: scale(1.06) translateY(4px) !important;
+}
+
+/* Place the letter inside the scene behind the sticks but above the very back */
+#letter {
+  position: absolute;
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  left: 50%;
+  top: 30%;
+  transform: translate(-50%, -50%);
+  z-index: 4; /* behind sticks (6) but under box parts (8) */
+  opacity: 0.98;
+  pointer-events: none; /* don't intercept clicks */
+  margin-top: 40px;
 }
 
 
