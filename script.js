@@ -143,3 +143,24 @@ window.addEventListener('resize', () => {
   positionTearInstruction();
 });
 
+// Make sticks clickable: bring clicked stick in front
+function enableStickClicks() {
+  const sticksContainer = document.querySelector('.sticks');
+  const sticks = Array.from(document.querySelectorAll('.stick'));
+  if (!sticksContainer || sticks.length === 0) return;
+
+  sticks.forEach(s => {
+    s.style.cursor = 'pointer';
+    s.addEventListener('click', (e) => {
+      // remove class from others
+      sticks.forEach(x => x.classList.remove('in-front'));
+      // bring this one forward
+      s.classList.add('in-front');
+  // only the clicked stick will be brought forward via the .in-front class
+      e.stopPropagation();
+    });
+  });
+}
+
+window.addEventListener('load', enableStickClicks);
+

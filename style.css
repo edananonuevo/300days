@@ -44,8 +44,7 @@ body {
   margin-left: 12px;
   margin-top: -40px;
   gap: 12px; /* tighter spacing */
-  z-index: 0; /* behind box parts which will be higher */
-  pointer-events: none;
+  pointer-events: auto; /* allow clicking sticks */
 }
 
 .stick {
@@ -55,6 +54,14 @@ body {
   opacity: 0.98;
   transform-origin: center bottom;
   margin-left: -18px; /* overlap slightly to bring sticks closer */
+  z-index: 0; /* behind box parts */
+}
+
+/* When a stick is clicked, bring it visually forward */
+.stick.in-front {
+  position: relative;
+  z-index: 4; /* above box parts */
+  transform: scale(1.06) translateY(4px) !important;
 }
 
 
