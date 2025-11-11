@@ -149,15 +149,67 @@ function enableStickClicks() {
   const sticks = Array.from(document.querySelectorAll('.stick'));
   if (!sticksContainer || sticks.length === 0) return;
 
+  // variants for cycling when a stick is already in-front
+  const stickVariants = [
+    'Pepero/Pepero Stick/stick-1.png',
+    'Pepero/Pepero Stick/stick-2.png',
+    'Pepero/Pepero Stick/stick-3.png',
+    'Pepero/Pepero Stick/stick-4.png'
+  ];
+
+  // initialize per-stick state
   sticks.forEach(s => {
     s.style.cursor = 'pointer';
+    s.dataset.variantIndex = '0'; // starts at variant 0 (stick-1)
+    s.dataset.hidden = 'false';
+
     s.addEventListener('click', (e) => {
-      // remove class from others
-      sticks.forEach(x => x.classList.remove('in-front'));
-      // bring this one forward
-      s.classList.add('in-front');
-  // only the clicked stick will be brought forward via the .in-front class
       e.stopPropagation();
+      // ignore clicks on hidden sticks
+      if (s.dataset.hidden === 'true') return;
+
+      const isFront = s.classList.contains('in-front');
+
+      if (!isFront) {
+        // bring this stick forward and reset others; do NOT revive sticks that have been hidden
+        sticks.forEach(x => {
+          if (x === s) return;
+          // if another stick was already hidden (eaten), leave it hidden
+          if (x.dataset.hidden === 'true') return;
+          x.classList.remove('in-front');
+          x.dataset.variantIndex = '0';
+          x.src = stickVariants[0];
+          x.style.display = '';
+          x.style.opacity = '';
+          x.style.pointerEvents = '';
+        });
+        s.classList.add('in-front');
+        // ensure the front stick shows the base variant unless it was already advanced
+        const current = parseInt(s.dataset.variantIndex || '0', 10);
+        s.src = stickVariants[current] || stickVariants[0];
+        return;
+      }
+
+      // If already in-front, advance the variant index and update appearance
+      let idx = parseInt(s.dataset.variantIndex || '0', 10);
+  idx = idx + 1; // advance to next variant on each click while in-front
+
+  if (idx < stickVariants.length) {
+        s.dataset.variantIndex = String(idx);
+        s.src = stickVariants[idx];
+      } else {
+        // after final variant, hide the stick visually and disable interactions
+        // Use visibility:hidden (preserves layout space) so other sticks don't shift
+        s.dataset.hidden = 'true';
+        s.classList.remove('in-front');
+        s.style.transition = 'opacity 220ms ease, transform 220ms ease';
+        s.style.opacity = '0';
+        // keep the element in layout but make it non-interactive and invisible
+        setTimeout(() => {
+          s.style.visibility = 'hidden';
+          s.style.pointerEvents = 'none';
+        }, 240);
+      }
     });
   });
 }
