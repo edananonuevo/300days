@@ -47,7 +47,7 @@ const bgMusic = document.getElementById('bgMusic');
 const musicToggle = document.getElementById('musicToggle');
 
 // Desired audible volume when unmuted
-const DESIRED_VOLUME = 0.01;
+const DESIRED_VOLUME = 0.8;
 bgMusic.volume = DESIRED_VOLUME; // default target volume
 
 // Attempt audible autoplay on load. If blocked by browser, try muted autoplay
