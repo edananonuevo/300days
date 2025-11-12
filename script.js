@@ -18,6 +18,8 @@ function createSnowflakes() {
 
 function drawSnowflakes() {
   ctx.clearRect(0, 0, width, height);
+  ctx.shadowColor = 'rgba(180, 220, 255, 0.7)';
+  ctx.shadowBlur = 6;
   ctx.fillStyle = 'white';
   ctx.beginPath();
   for (let flake of snowflakes) {
