@@ -65,6 +65,7 @@ body {
   transform-origin: center bottom;
   margin-left: -18px; /* overlap slightly to bring sticks closer */
   z-index: 6; /* behind box parts */
+  position: relative; /* allow indicator to be positioned relative to the stick */
 }
 
 /* When a stick is clicked, bring it visually forward */
@@ -111,7 +112,7 @@ body {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: rgba(33, 133, 255, 0.95); /* strong blue */
+  background: rgba(255, 80, 80, 0.95); /* strong blue */
   box-shadow: 0 6px 12px rgba(33,133,255,0.18);
   transform: translate(-50%, -50%);
   pointer-events: none;
@@ -119,15 +120,24 @@ body {
   animation: pulse-ind 1s infinite ease-in-out;
 }
 
+/* Pulsing click indicator for the first stick */
+.stick-click-indicator {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 80, 80, 0.95); /* attention color */
+  box-shadow: 0 8px 18px rgba(255,80,80,0.16);
+  transform: translate(-50%, -50%);
+  pointer-events: none; /* let clicks pass through to the stick */
+  z-index: 20; /* above sticks and box parts when needed visually */
+  animation: pulse-ind 1100ms infinite ease-in-out;
+}
+
 @keyframes pulse-ind {
   0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
   50% { transform: translate(-50%, -50%) scale(1.35); opacity: 0.7; }
   100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-}
-@keyframes pulse {
-  0% { transform: translateY(-50%) scale(1); opacity: 1; }
-  50% { transform: translateY(-50%) scale(1.06); opacity: 0.85; }
-  100% { transform: translateY(-50%) scale(1); opacity: 1; }
 }
 
 .hidden {

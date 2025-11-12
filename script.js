@@ -66,7 +66,7 @@ let isTearPlaying = false;
 function playTearSequence() {
   if (!tearTab || isTearPlaying) return;
   isTearPlaying = true;
-  // Hide the indicator immediately when sequence starts
+  // Hide the tear indicator immediately when sequence starts
   const tearIndicator = document.querySelector('.tear-indicator');
   if (tearIndicator) tearIndicator.style.display = 'none';
   // prevent re-click while animating
@@ -101,6 +101,8 @@ function playTearSequence() {
           boxTop.classList.add('preserve-space');
         }
         if (sticks) sticks.classList.remove('hidden');
+  // After sticks are revealed, show a pulsing click indicator over the first stick
+  try { showStickClickIndicator(); } catch (err) { /* ignore if DOM not ready */ }
       }, 1000); // match animation duration
 
       // Blank and fully disable the tear row so it can't be used again
@@ -116,7 +118,7 @@ if (tearTab) {
   tearTab.addEventListener('click', playTearSequence);
 }
 
-// Robust positioning: place the `.tear-instruction` to the left/top of the `#tearTab` image
+// Robust positioning: place the `.tear-indicator` to the left/top of the `#tearTab` image
 function positionTearInstruction() {
   const scene = document.querySelector('.pepero-scene');
   const tab = document.getElementById('tearTab');
@@ -200,6 +202,9 @@ function enableStickClicks() {
         // ensure the front stick shows the base variant unless it was already advanced
         const current = parseInt(s.dataset.variantIndex || '0', 10);
         s.src = stickVariants[current] || stickVariants[0];
+  // If this is the first stick, remove the click indicator now that it's in front
+  const firstStick = document.querySelector('.stick');
+  if (firstStick === s) removeStickClickIndicator();
         return;
       }
 
@@ -281,4 +286,48 @@ function enableLetterClick() {
 
   letter.addEventListener('click', onLetterClick);
 }
+
+// --- Click indicator helpers for the first stick ---
+let _stickIndicatorEl = null;
+
+function showStickClickIndicator() {
+  // create indicator if not present and position it over the first visible stick
+  if (_stickIndicatorEl) return; // already showing
+  const firstStick = document.querySelector('.stick');
+  if (!firstStick) return;
+
+  const indicator = document.createElement('div');
+  indicator.className = 'stick-click-indicator';
+  indicator.setAttribute('aria-hidden', 'true');
+  // append to scene so z-index stacking is predictable
+  const scene = document.querySelector('.pepero-scene') || document.body;
+  scene.appendChild(indicator);
+  _stickIndicatorEl = indicator;
+  positionStickIndicator();
+  // Reposition on resize in case layout shifts
+  window.addEventListener('resize', positionStickIndicator);
+}
+
+function positionStickIndicator() {
+  if (!_stickIndicatorEl) return;
+  const firstStick = document.querySelector('.stick');
+  if (!firstStick) return;
+  const scene = document.querySelector('.pepero-scene') || document.body;
+  const sceneRect = scene.getBoundingClientRect();
+  const stickRect = firstStick.getBoundingClientRect();
+
+  // Place the indicator slightly above and centered on the stick's visible top area
+  const x = stickRect.left - sceneRect.left + stickRect.width / 2 - 5;
+  const y = stickRect.top - sceneRect.top + stickRect.height * 0.05; // near top of stick image
+  _stickIndicatorEl.style.left = Math.round(x) + 'px';
+  _stickIndicatorEl.style.top = Math.round(y) + 'px';
+}
+
+function removeStickClickIndicator() {
+  if (!_stickIndicatorEl) return;
+  try { _stickIndicatorEl.remove(); } catch (e) { /* ignore */ }
+  _stickIndicatorEl = null;
+  window.removeEventListener('resize', positionStickIndicator);
+}
+
 
