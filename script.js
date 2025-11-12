@@ -198,29 +198,32 @@ function enableStickClicks() {
           x.style.opacity = '';
           x.style.pointerEvents = '';
         });
-        s.classList.add('in-front');
+  s.classList.add('in-front');
         // ensure the front stick shows the base variant unless it was already advanced
         const current = parseInt(s.dataset.variantIndex || '0', 10);
         s.src = stickVariants[current] || stickVariants[0];
-  // If this is the first stick, remove the click indicator now that it's in front
-  const firstStick = document.querySelector('.stick');
-  if (firstStick === s) removeStickClickIndicator();
+  // Move the click indicator to this stick and position it at the top (now in-front)
+  showStickClickIndicator(s);
+  // Position after layout/transform is applied
+  requestAnimationFrame(positionStickIndicator);
         return;
       }
 
       // If already in-front, advance the variant index and update appearance
       let idx = parseInt(s.dataset.variantIndex || '0', 10);
-  idx = idx + 1; // advance to next variant on each click while in-front
+      idx = idx + 1; // advance to next variant on each click while in-front
 
-  if (idx < stickVariants.length) {
+      if (idx < stickVariants.length) {
         s.dataset.variantIndex = String(idx);
         s.src = stickVariants[idx];
+        // reposition the indicator to move down as the stick is eaten
+        requestAnimationFrame(positionStickIndicator);
       } else {
         // after final variant, hide the stick visually and disable interactions
         // Use visibility:hidden (preserves layout space) so other sticks don't shift
         s.dataset.hidden = 'true';
-  // check if all sticks are now hidden and enable the letter if so
-  checkAllSticksHidden();
+        // check if all sticks are now hidden and enable the letter if so
+        checkAllSticksHidden();
         s.classList.remove('in-front');
         s.style.transition = 'opacity 220ms ease, transform 220ms ease';
         s.style.opacity = '0';
@@ -228,6 +231,16 @@ function enableStickClicks() {
         setTimeout(() => {
           s.style.visibility = 'hidden';
           s.style.pointerEvents = 'none';
+          // after this stick is fully hidden, move the indicator to the next available stick
+          const next = findNextAvailableStick(s);
+          if (next) {
+            // ensure next has default variant index
+            if (!next.dataset.variantIndex) next.dataset.variantIndex = '0';
+            showStickClickIndicator(next);
+            requestAnimationFrame(positionStickIndicator);
+          } else {
+            removeStickClickIndicator();
+          }
         }, 240);
       }
     });
@@ -264,6 +277,9 @@ function enableLetterClick() {
     // Prevent double clicks
     letter.style.pointerEvents = 'none';
 
+  // remove the letter indicator when the letter is clicked
+  removeLetterClickIndicator();
+
     // Slide the box bottom down and then hide it so the letter is unobstructed
     boxBottom.classList.add('box-bottom-slide');
 
@@ -285,40 +301,55 @@ function enableLetterClick() {
   }
 
   letter.addEventListener('click', onLetterClick);
+  // show a click indicator for the letter now that it is enabled
+  showLetterClickIndicator();
 }
 
 // --- Click indicator helpers for the first stick ---
 let _stickIndicatorEl = null;
+let _stickIndicatorTarget = null;
 
-function showStickClickIndicator() {
-  // create indicator if not present and position it over the first visible stick
-  if (_stickIndicatorEl) return; // already showing
-  const firstStick = document.querySelector('.stick');
-  if (!firstStick) return;
+function showStickClickIndicator(targetStick) {
+  // targetStick: optional DOM element to anchor the indicator to
+  const first = targetStick || document.querySelector('.stick');
+  if (!first) return;
 
-  const indicator = document.createElement('div');
-  indicator.className = 'stick-click-indicator';
-  indicator.setAttribute('aria-hidden', 'true');
-  // append to scene so z-index stacking is predictable
-  const scene = document.querySelector('.pepero-scene') || document.body;
-  scene.appendChild(indicator);
-  _stickIndicatorEl = indicator;
+  // create indicator if not present
+  if (!_stickIndicatorEl) {
+    const indicator = document.createElement('div');
+    indicator.className = 'stick-click-indicator';
+    indicator.setAttribute('aria-hidden', 'true');
+    const scene = document.querySelector('.pepero-scene') || document.body;
+    scene.appendChild(indicator);
+    _stickIndicatorEl = indicator;
+    // Reposition on resize in case layout shifts
+    window.addEventListener('resize', positionStickIndicator);
+  }
+
+  _stickIndicatorTarget = first;
   positionStickIndicator();
-  // Reposition on resize in case layout shifts
-  window.addEventListener('resize', positionStickIndicator);
 }
 
 function positionStickIndicator() {
-  if (!_stickIndicatorEl) return;
-  const firstStick = document.querySelector('.stick');
+  if (!_stickIndicatorEl || !_stickIndicatorTarget) return;
+  const firstStick = _stickIndicatorTarget;
   if (!firstStick) return;
   const scene = document.querySelector('.pepero-scene') || document.body;
   const sceneRect = scene.getBoundingClientRect();
   const stickRect = firstStick.getBoundingClientRect();
 
-  // Place the indicator slightly above and centered on the stick's visible top area
-  const x = stickRect.left - sceneRect.left + stickRect.width / 2 - 5;
-  const y = stickRect.top - sceneRect.top + stickRect.height * 0.05; // near top of stick image
+  // Position X centered on the stick
+  const x = stickRect.left - sceneRect.left + stickRect.width / 2; // slight left offset
+
+  // Move Y from near-top down toward bottom as the stick is eaten.
+  const variantIdx = parseInt(firstStick.dataset.variantIndex || '0', 10);
+  const maxVariants = 3; // 4 images => indices 0..3
+  const startPct = 0.05; // top position when fresh
+  const endPct = 0.78;   // bottom-ish position when eaten
+  const t = Math.min(1, Math.max(0, variantIdx / maxVariants));
+  const yPct = startPct + (endPct - startPct) * t;
+  const y = stickRect.top - sceneRect.top + stickRect.height * yPct;
+
   _stickIndicatorEl.style.left = Math.round(x) + 'px';
   _stickIndicatorEl.style.top = Math.round(y) + 'px';
 }
@@ -327,7 +358,66 @@ function removeStickClickIndicator() {
   if (!_stickIndicatorEl) return;
   try { _stickIndicatorEl.remove(); } catch (e) { /* ignore */ }
   _stickIndicatorEl = null;
+  _stickIndicatorTarget = null;
   window.removeEventListener('resize', positionStickIndicator);
+}
+
+// Find the next available (not hidden) stick in DOM order after the provided stick
+function findNextAvailableStick(currentStick) {
+  const all = Array.from(document.querySelectorAll('.stick'));
+  if (!all || all.length === 0) return null;
+  const index = all.indexOf(currentStick);
+  // search forward
+  for (let i = index + 1; i < all.length; i++) {
+    const s = all[i];
+    if (s && s.dataset.hidden !== 'true') return s;
+  }
+  // wrap-around: search from start to current
+  for (let i = 0; i < index; i++) {
+    const s = all[i];
+    if (s && s.dataset.hidden !== 'true') return s;
+  }
+  return null;
+}
+
+// --- Letter click indicator helpers ---
+let _letterIndicatorEl = null;
+
+function showLetterClickIndicator() {
+  if (_letterIndicatorEl) return;
+  const letter = document.getElementById('letter');
+  const scene = document.querySelector('.pepero-scene') || document.body;
+  if (!letter || !scene) return;
+
+  const el = document.createElement('div');
+  el.className = 'letter-click-indicator';
+  el.setAttribute('aria-hidden', 'true');
+  scene.appendChild(el);
+  _letterIndicatorEl = el;
+  positionLetterIndicator();
+  window.addEventListener('resize', positionLetterIndicator);
+}
+
+function positionLetterIndicator() {
+  if (!_letterIndicatorEl) return;
+  const letter = document.getElementById('letter');
+  const scene = document.querySelector('.pepero-scene') || document.body;
+  if (!letter || !scene) return;
+  const sceneRect = scene.getBoundingClientRect();
+  const letterRect = letter.getBoundingClientRect();
+
+  // place at top-center of the letter image
+  const x = letterRect.left - sceneRect.left + letterRect.width / 2;
+  const y = letterRect.top - sceneRect.top + (letterRect.height * 0.06); // slightly down from top edge
+  _letterIndicatorEl.style.left = Math.round(x) + 'px';
+  _letterIndicatorEl.style.top = Math.round(y) + 'px';
+}
+
+function removeLetterClickIndicator() {
+  if (!_letterIndicatorEl) return;
+  try { _letterIndicatorEl.remove(); } catch (e) { /* ignore */ }
+  _letterIndicatorEl = null;
+  window.removeEventListener('resize', positionLetterIndicator);
 }
 
 

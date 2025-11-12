@@ -134,6 +134,20 @@ body {
   animation: pulse-ind 1100ms infinite ease-in-out;
 }
 
+/* Click indicator for the letter (top-middle) */
+.letter-click-indicator {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(33, 133, 255, 0.95); /* blue accent */
+  box-shadow: 0 8px 18px rgba(33,133,255,0.16);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 30; /* above box parts and sticks */
+  animation: pulse-ind 1000ms infinite ease-in-out;
+}
+
 @keyframes pulse-ind {
   0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
   50% { transform: translate(-50%, -50%) scale(1.35); opacity: 0.7; }
