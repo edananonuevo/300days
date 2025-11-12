@@ -275,13 +275,49 @@ function enableLetterClick() {
   function onLetterClick(e) {
     e.stopPropagation();
     // Prevent double clicks
+    // Temporarily disable pointer events while handling
     letter.style.pointerEvents = 'none';
 
-  // remove the letter indicator when the letter is clicked
-  removeLetterClickIndicator();
+    // If not yet revealed, perform reveal; otherwise, enlarge
+    if (letter.dataset.revealed !== 'true') {
+      // first click: reveal the letter (slide box bottom)
+      boxBottom.classList.add('box-bottom-slide');
 
-    // Slide the box bottom down and then hide it so the letter is unobstructed
-    boxBottom.classList.add('box-bottom-slide');
+      const cleanup = () => {
+        boxBottom.classList.remove('box-bottom-slide');
+        boxBottom.classList.add('hidden');
+        boxBottom.removeEventListener('transitionend', cleanup);
+
+        // mark letter as revealed and reposition the indicator to center
+        letter.dataset.revealed = 'true';
+        // reposition the indicator to the center of the letter
+        requestAnimationFrame(positionLetterIndicator);
+
+        // re-enable clicking so second click can enlarge
+        letter.style.pointerEvents = 'auto';
+        letter.style.cursor = 'pointer';
+      };
+
+      boxBottom.addEventListener('transitionend', cleanup);
+      // Fallback in case transitionend doesn't fire
+      setTimeout(() => {
+        if (!boxBottom.classList.contains('hidden')) {
+          boxBottom.classList.add('hidden');
+        }
+        if (letter.dataset.revealed !== 'true') {
+          letter.dataset.revealed = 'true';
+          requestAnimationFrame(positionLetterIndicator);
+          letter.style.pointerEvents = 'auto';
+        }
+      }, 900);
+      return;
+    }
+
+    // Second click: enlarge the letter and remove the indicator
+    letter.classList.add('letter-enlarge');
+    removeLetterClickIndicator();
+    // keep pointer events disabled after enlargement to avoid accidental re-clicks
+    letter.style.pointerEvents = 'none';
 
     // After the transition finishes, hide the element (preserve layout if desired)
     const cleanup = () => {
@@ -405,10 +441,12 @@ function positionLetterIndicator() {
   if (!letter || !scene) return;
   const sceneRect = scene.getBoundingClientRect();
   const letterRect = letter.getBoundingClientRect();
-
-  // place at top-center of the letter image
+  // place at top-center of the letter image by default; center when revealed
   const x = letterRect.left - sceneRect.left + letterRect.width / 2;
-  const y = letterRect.top - sceneRect.top + (letterRect.height * 0.06); // slightly down from top edge
+  const revealed = letter.dataset.revealed === 'true';
+  const y = revealed
+    ? (letterRect.top - sceneRect.top + letterRect.height / 2) // center
+    : (letterRect.top - sceneRect.top + (letterRect.height * 0.06)); // slightly down from top edge
   _letterIndicatorEl.style.left = Math.round(x) + 'px';
   _letterIndicatorEl.style.top = Math.round(y) + 'px';
 }
