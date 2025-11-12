@@ -215,15 +215,15 @@ function enableStickClicks() {
           if (x.dataset.hidden === 'true') return;
           x.classList.remove('in-front');
           x.dataset.variantIndex = '0';
-          x.src = stickVariants[0];
+          setStickSrc(x, stickVariants[0]);
           x.style.display = '';
           x.style.opacity = '';
           x.style.pointerEvents = '';
         });
   s.classList.add('in-front');
         // ensure the front stick shows the base variant unless it was already advanced
-        const current = parseInt(s.dataset.variantIndex || '0', 10);
-        s.src = stickVariants[current] || stickVariants[0];
+  const current = parseInt(s.dataset.variantIndex || '0', 10);
+  setStickSrc(s, stickVariants[current] || stickVariants[0]);
   // Move the click indicator to this stick and position it at the top (now in-front)
   showStickClickIndicator(s);
   // Position after layout/transform is applied
@@ -236,8 +236,8 @@ function enableStickClicks() {
       idx = idx + 1; // advance to next variant on each click while in-front
 
       if (idx < stickVariants.length) {
-        s.dataset.variantIndex = String(idx);
-        s.src = stickVariants[idx];
+  s.dataset.variantIndex = String(idx);
+  setStickSrc(s, stickVariants[idx]);
         // reposition the indicator to move down as the stick is eaten
         requestAnimationFrame(positionStickIndicator);
       } else {
@@ -269,6 +269,20 @@ function enableStickClicks() {
   });
   // If some sticks were already hidden (edge case), enable the letter now
   checkAllSticksHidden();
+}
+
+// Helper to safely update an <img> src and avoid drop-shadow/outline artifacts on mobile
+function setStickSrc(imgEl, src) {
+  if (!imgEl) return;
+  const tmp = new Image();
+  tmp.onload = () => {
+    // swap source when fully loaded, then force a small repaint
+    imgEl.src = src;
+    // briefly toggle a paint class to ensure the browser updates the compositing
+    imgEl.classList.add('refresh-repaint');
+    setTimeout(() => imgEl.classList.remove('refresh-repaint'), 30);
+  };
+  tmp.src = src;
 }
 
 window.addEventListener('load', enableStickClicks);

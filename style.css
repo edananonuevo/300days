@@ -82,6 +82,10 @@ body {
   z-index: 6; /* behind box parts */
   position: relative; /* allow indicator to be positioned relative to the stick */
   filter: drop-shadow(0 8px 18px rgba(0,0,0,0.5));
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 /* When a stick is clicked, bring it visually forward */
@@ -89,7 +93,16 @@ body {
   position: relative;
   z-index: 10; /* above box parts */
   transform: scale(1.06) translateY(4px) !important;
-  /* filter: drop-shadow(0 8px 18px rgba(0,0,0,0.8)); */
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,0.8));
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+/* small repaint helper toggled briefly after image src swap */
+.refresh-repaint {
+  will-change: transform, filter, opacity;
 }
 
 /* Place the letter inside the scene behind the sticks but above the very back */
