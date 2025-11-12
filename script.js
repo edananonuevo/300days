@@ -53,6 +53,17 @@ document.body.addEventListener('click', () => {
   }
 });
 
+const musicToggle = document.getElementById('musicToggle');
+musicToggle.addEventListener('click', () => {
+  if (bgMusic.paused) {
+    bgMusic.play();
+    musicToggle.textContent = "🔈 Music On";
+  } else {
+    bgMusic.pause();
+    musicToggle.textContent = "🔇 Music Off";
+  }
+});
+
 
 const tearTab = document.getElementById('tearTab');
 const boxClosed = document.getElementById('boxClosed');
