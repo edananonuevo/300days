@@ -75,6 +75,7 @@ body {
   position: relative;
   z-index: 10; /* above box parts */
   transform: scale(1.06) translateY(4px) !important;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,0.8));
 }
 
 /* Place the letter inside the scene behind the sticks but above the very back */

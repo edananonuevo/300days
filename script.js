@@ -43,6 +43,17 @@ for (let i = 0; i < 100; i++) createSnowflakes();
 drawSnowflakes();
 
 
+const bgMusic = document.getElementById('bgMusic');
+bgMusic.volume = 0.1; // adjust volume if needed
+
+// Start music on first user interaction
+document.body.addEventListener('click', () => {
+  if (bgMusic.paused) {
+    bgMusic.play().catch(e => console.log("Autoplay prevented:", e));
+  }
+});
+
+
 const tearTab = document.getElementById('tearTab');
 const boxClosed = document.getElementById('boxClosed');
 const boxTop = document.getElementById('boxTop');
