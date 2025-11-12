@@ -484,7 +484,7 @@ function positionStickIndicator() {
   const variantIdx = parseInt(firstStick.dataset.variantIndex || '0', 10);
   const maxVariants = 3; // 4 images => indices 0..3
   const startPct = 0.05; // top position when fresh
-  const endPct = 0.78;   // bottom-ish position when eaten
+  const endPct = 0.75;   // bottom-ish position when eaten
   const t = Math.min(1, Math.max(0, variantIdx / maxVariants));
   const yPct = startPct + (endPct - startPct) * t;
   const y = stickRect.top - sceneRect.top + stickRect.height * yPct;
