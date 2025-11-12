@@ -549,7 +549,7 @@ function positionLetterIndicator() {
   const revealed = letter.dataset.revealed === 'true';
   const y = revealed
     ? (letterRect.top - sceneRect.top + letterRect.height / 2) // center
-    : (letterRect.top - sceneRect.top + (letterRect.height * 0.06)); // slightly down from top edge
+    : (letterRect.top - sceneRect.top + (letterRect.height * 0.08)); // slightly down from top edge
   _letterIndicatorEl.style.left = Math.round(x) + 'px';
   _letterIndicatorEl.style.top = Math.round(y) + 'px';
 }
