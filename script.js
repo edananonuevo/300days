@@ -44,25 +44,92 @@ drawSnowflakes();
 
 
 const bgMusic = document.getElementById('bgMusic');
-bgMusic.volume = 0.1; // adjust volume if needed
-
-// Start music on first user interaction
-document.body.addEventListener('click', () => {
-  if (bgMusic.paused) {
-    bgMusic.play().catch(e => console.log("Autoplay prevented:", e));
-  }
-});
-
 const musicToggle = document.getElementById('musicToggle');
-musicToggle.addEventListener('click', () => {
+
+// Desired audible volume when unmuted
+const DESIRED_VOLUME = 0.05;
+bgMusic.volume = DESIRED_VOLUME; // default target volume
+
+// Attempt audible autoplay on load. If blocked by browser, try muted autoplay
+// so playback actually starts immediately; we'll unmute/fade when allowed.
+let autoplayStartedMuted = false;
+
+bgMusic.muted = false;
+bgMusic.play().then(() => {
+  // audible autoplay succeeded
+  if (musicToggle) musicToggle.textContent = '❚❚';
+}).catch(err => {
+  // audible autoplay prevented -> try muted autoplay (most browsers allow this)
+  console.log('Audible autoplay prevented, attempting muted autoplay:', err);
+  bgMusic.muted = true;
+  bgMusic.play().then(() => {
+    autoplayStartedMuted = true;
+    // indicate playback state (muted) so UI shows it's playing
+    if (musicToggle) musicToggle.textContent = '❚❚';
+    console.log('Muted autoplay started successfully');
+  }).catch(err2 => {
+    // muted autoplay also prevented; fall back to waiting for user interaction
+    bgMusic.muted = false;
+    if (musicToggle) musicToggle.textContent = '▶';
+    console.log('Muted autoplay prevented as well:', err2);
+  });
+});
+
+// On the first user gesture, if we started muted, unmute and fade in to desired volume.
+document.body.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'musicToggle') return; // ignore toggle clicks here
+
+  if (autoplayStartedMuted && bgMusic.muted) {
+    // Unmute and fade in
+    try {
+      bgMusic.muted = false;
+      // start from 0 and fade to DESIRED_VOLUME
+      bgMusic.volume = 0;
+      const steps = 10;
+      const stepVal = DESIRED_VOLUME / steps;
+      let v = 0;
+      const fade = setInterval(() => {
+        v += stepVal;
+        if (v >= DESIRED_VOLUME) {
+          bgMusic.volume = DESIRED_VOLUME;
+          clearInterval(fade);
+        } else {
+          bgMusic.volume = v;
+        }
+      }, 60);
+      if (musicToggle) musicToggle.textContent = '❚❚';
+    } catch (unmuteErr) {
+      console.log('Failed to unmute on gesture:', unmuteErr);
+    }
+    // no further action needed for play since audio is already playing (muted)
+    return;
+  }
+
+  // If we didn't start autoplay at all, let a regular interaction start playback
   if (bgMusic.paused) {
-    bgMusic.play();
-    musicToggle.textContent = "🔈 Music On";
-  } else {
-    bgMusic.pause();
-    musicToggle.textContent = "🔇 Music Off";
+    bgMusic.play().then(() => {
+      if (musicToggle) musicToggle.textContent = '❚❚';
+    }).catch(e => console.log('Play prevented on interaction:', e));
   }
 });
+
+// Music toggle click: play/pause and ensure unmuted when user intentionally plays
+if (musicToggle) {
+  musicToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (bgMusic.paused) {
+      // user explicitly requests play -> ensure not muted and set volume
+      if (bgMusic.muted) bgMusic.muted = false;
+      bgMusic.volume = DESIRED_VOLUME;
+      bgMusic.play().then(() => {
+        musicToggle.textContent = '❚❚';
+      }).catch(err => console.log('Play failed from toggle:', err));
+    } else {
+      bgMusic.pause();
+      musicToggle.textContent = '▶';
+    }
+  });
+}
 
 
 const tearTab = document.getElementById('tearTab');
